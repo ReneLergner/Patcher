@@ -19,6 +19,7 @@
 // DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -149,6 +150,7 @@ namespace Patcher
             Padding = 0;
 
             string[] Lines = ArmCodeFragment.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            List<Tuple<string, string>> Labels = new List<Tuple<string, string>>();
 
             foreach (string Line in Lines)
             {
@@ -169,6 +171,7 @@ namespace Patcher
                         (new char[] { '\t', ' ' }.Contains(Line[EquPos + 3])))
                     {
                         Result.AppendLine(Line.Trim());
+                        Labels.Add(new Tuple<string, string>(Line.Substring(0, EquPos).Trim(), Line.Substring(EquPos + 3).Trim()));
                         continue;
                     }
                 }
@@ -196,6 +199,14 @@ namespace Patcher
                     if (PossibleAddress != null)
                     {
                         UInt32 ParsedValue;
+                        foreach (Tuple<string, string> Label in Labels)
+                        {
+                            if (string.Compare(Label.Item1, PossibleAddress, true) == 0)
+                            {
+                                PossibleAddress = Label.Item2;
+                                break;
+                            }
+                        }
                         if (PossibleAddress.StartsWith("0x"))
                             PossibleAddress = PossibleAddress.Substring(2);
                         IsAbsoluteAddress = UInt32.TryParse(PossibleAddress, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out ParsedValue);

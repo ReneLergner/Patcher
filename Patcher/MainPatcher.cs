@@ -30,14 +30,14 @@ namespace Patcher
     {
         // TargetFilePath is relative to the root of the PatchDefinition
         // OutputFilePath can be null
-        public static void AddPatch(string InputFilePath, string OutputFilePath, string PatchDefinitionName, string TargetVersionDescription, string TargetFilePath, string PathToVisualStudioWithWP8SDK, UInt32 VirtualOffset, CodeType CodeType, string ArmCodeFragment, string PatchDefintionsXmlPath)
+        public static void AddPatch(string InputFilePath, string OutputFilePath, string PatchDefinitionName, string TargetVersionDescription, string TargetFilePath, string PathToVisualStudioWithWP8SDK, UInt32 VirtualAddress, CodeType CodeType, string ArmCodeFragment, string PatchDefintionsXmlPath)
         {
             SHA1Managed SHA = new SHA1Managed();
 
             // Compile ARM code
             byte[] CompiledCode = null;
-            if (VirtualOffset != 0)
-                CompiledCode = ArmCompiler.Compile(PathToVisualStudioWithWP8SDK, VirtualOffset, CodeType, ArmCodeFragment);
+            if (VirtualAddress != 0)
+                CompiledCode = ArmCompiler.Compile(PathToVisualStudioWithWP8SDK, VirtualAddress, CodeType, ArmCodeFragment);
 
             // Read original binary
             byte[] Binary = File.ReadAllBytes(InputFilePath);
@@ -46,13 +46,11 @@ namespace Patcher
             UInt32 ChecksumOffset = GetChecksumOffset(Binary);
             UInt32 OriginalChecksum = ByteOperations.ReadUInt32(Binary, ChecksumOffset);
 
-            // Determine Raw Offset (PEReader)
-            MemoryStream BinaryStream = new MemoryStream(Binary);
-            BinaryReader BinaryReader = new BinaryReader(BinaryStream);
-            PEReader PEReader = new PEReader(BinaryReader);
+            // Determine Raw Offset
+            PeFile PeFile = new PeFile(Binary);
             UInt32 RawOffset = 0;
-            if (VirtualOffset != 0)
-                RawOffset = PEReader.ConvertVirtualToRaw(VirtualOffset);
+            if (VirtualAddress != 0)
+                RawOffset = PeFile.ConvertVirtualAddressToRawOffset(VirtualAddress);
 
             // Add or replace patch
             string PatchDefintionsXml = File.ReadAllText(PatchDefintionsXmlPath);
@@ -80,7 +78,7 @@ namespace Patcher
             TargetFile.Path = TargetFilePath;
             TargetFile.HashOriginal = SHA.ComputeHash(Binary);
             Patch Patch;
-            if (VirtualOffset != 0)
+            if (VirtualAddress != 0)
             {
                 Patch = TargetFile.Patches.Where(p => p.Address == RawOffset).FirstOrDefault();
                 if (Patch == null)

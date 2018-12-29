@@ -25,6 +25,16 @@ namespace WPinternals
 {
     internal static class ByteOperations
     {
+        internal static string ReadAsciiString(byte[] ByteArray, UInt32 Offset)
+        {
+            UInt32 Length = 0;
+            while (((Offset + Length) < ByteArray.Length) && (ByteArray[Offset + Length] != 0))
+                Length++;
+            byte[] Bytes = new byte[Length];
+            Buffer.BlockCopy(ByteArray, (int)Offset, Bytes, 0, (int)Length);
+            return System.Text.Encoding.ASCII.GetString(Bytes);
+        }
+
         internal static string ReadAsciiString(byte[] ByteArray, UInt32 Offset, UInt32 Length)
         {
             byte[] Bytes = new byte[Length];
@@ -221,9 +231,19 @@ namespace WPinternals
             return FindPattern(SourceBuffer, System.Text.ASCIIEncoding.ASCII.GetBytes((string)Pattern), null, null);
         }
 
+        internal static UInt32? FindAscii(byte[] SourceBuffer, uint SourceOffset, string Pattern)
+        {
+            return FindPattern(SourceBuffer, SourceOffset, null, System.Text.ASCIIEncoding.ASCII.GetBytes((string)Pattern), null, null);
+        }
+
         internal static UInt32? FindUnicode(byte[] SourceBuffer, string Pattern)
         {
             return FindPattern(SourceBuffer, System.Text.UnicodeEncoding.Unicode.GetBytes((string)Pattern), null, null);
+        }
+
+        internal static UInt32? FindUnicode(byte[] SourceBuffer, uint SourceOffset, string Pattern)
+        {
+            return FindPattern(SourceBuffer, SourceOffset, null, System.Text.UnicodeEncoding.Unicode.GetBytes((string)Pattern), null, null);
         }
 
         internal static UInt32? FindUint(byte[] SourceBuffer, UInt32 Pattern)

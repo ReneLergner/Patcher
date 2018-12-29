@@ -309,15 +309,15 @@ namespace Patcher
             string VirtualOffsetString = txtVirtualOffset.Text.Trim();
             if (VirtualOffsetString.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 VirtualOffsetString = VirtualOffsetString.Substring(2);
-            UInt32 VirtualOffset = 0;
+            UInt32 VirtualAddress = 0;
             CodeType CodeType = Patcher.CodeType.Thumb2;
             byte[] CompiledCode = null;
-            if (UInt32.TryParse(VirtualOffsetString, System.Globalization.NumberStyles.HexNumber, null, out VirtualOffset))
+            if (UInt32.TryParse(VirtualOffsetString, System.Globalization.NumberStyles.HexNumber, null, out VirtualAddress))
             {
                 CodeType = (CodeType)Enum.Parse(typeof(Patcher.CodeType), cmbCodeType.SelectedItem.ToString());
-                CompiledCode = ArmCompiler.Compile(txtVisualStudioPath.Text, VirtualOffset, CodeType, txtAssemblyCode.Text);
+                CompiledCode = ArmCompiler.Compile(txtVisualStudioPath.Text, VirtualAddress, CodeType, txtAssemblyCode.Text);
             }
-            if ((VirtualOffset != 0) && (CompiledCode == null))
+            if ((VirtualAddress != 0) && (CompiledCode == null))
                 txtCompiledOpcodes.Text = ArmCompiler.Output;
             else
             {
@@ -330,7 +330,7 @@ namespace Patcher
 
                 try
                 {
-                    MainPatcher.AddPatch(txtInputFile.Text, (txtOutputFile.Text.Trim().Length > 0) ? txtOutputFile.Text : null, cmbPatchDefinitionName.Text, cmbTargetVersion.Text, TargetFilePath, txtVisualStudioPath.Text, VirtualOffset, CodeType, txtAssemblyCode.Text, txtPatchDefinitionsFile.Text);
+                    MainPatcher.AddPatch(txtInputFile.Text, (txtOutputFile.Text.Trim().Length > 0) ? txtOutputFile.Text : null, cmbPatchDefinitionName.Text, cmbTargetVersion.Text, TargetFilePath, txtVisualStudioPath.Text, VirtualAddress, CodeType, txtAssemblyCode.Text, txtPatchDefinitionsFile.Text);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
